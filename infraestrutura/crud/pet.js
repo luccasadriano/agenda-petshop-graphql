@@ -5,16 +5,17 @@ class Pet {
   lista() {
     const sql = `SELECT Pets.id, Pets.nome, Pets.tipo, Pets.observacoes,
     Clientes.id as donoId, Clientes.nome as donoNome, Clientes.cpf as donoCpf
-    FROM Pets INNER JOIN Clientes 
+    FROM Pets 
+    INNER JOIN Clientes 
     where Pets.donoId = Clientes.id`
 
-    return executaQuery(sql).then(pets => 
+    return executaQuery(sql).then(pets =>
       pets.map(pet => ({
         id: pet.id,
         nome: pet.nome,
         tipo: pet.tipo,
         observacoes: pet.observacoes,
-        dono:{
+        dono: {
           id: pet.donoId,
           nome: pet.donoNome,
           cpf: pet.donoCpf
@@ -23,10 +24,24 @@ class Pet {
     )
   }
 
-  buscaPorId(res, id) {
-    const sql = `SELECT * FROM Pets WHERE id=${parseInt(id)}`
+  buscaPorId(id) {
+    const sql = `SELECT Pets.id, Pets.nome, Pets.tipo, Pets.observacoes,
+    Clientes.id as donoId, Clientes.nome as donoNome, Clientes.cpf as donoCpf
+    FROM Pets 
+    INNER JOIN Clientes 
+    WHERE Pets.id=${parseInt(id)} AND Clientes.id = Pets.donoId `
 
-    executaQuery(res, sql)
+    return executaQuery(sql).then(pets => ({
+      id: pets[0].id,
+      nome: pets[0].nome,
+      tipo: pets[0].tipo,
+      observacoes: pets[0].observacoes,
+      dono: {
+        id: pets[0].donoId,
+        nome: pets[0].donoNome,
+        cpf: pets[0].donoCpf
+      }
+    }))
   }
 
   adiciona(item) {
@@ -44,18 +59,25 @@ class Pet {
     }))
   }
 
-  atualiza(res, novoItem, id) {
-    const { nome, dono, tipo, observacoes } = novoItem
+  atualiza(novoItem) {
+    const { id, nome, donoId, tipo, observacoes } = novoItem
 
-    const sql = `UPDATE Pets SET nome='${nome}', donoId=${dono}, tipo='${tipo}', observacoes='${observacoes}' WHERE id=${id}`
+    const sql = `UPDATE Pets SET nome='${nome}', donoId=${donoId}, tipo='${tipo}', observacoes='${observacoes}' WHERE id=${id};
+    SELECT * FROM Clientes WHERE id=${donoId}`
 
-    executaQuery(res, sql)
+    return executaQuery(sql).then(data => {
+      const dono = data[1][0]
+      return ({
+        ...novoItem,
+        dono
+      })
+    })
   }
 
-  deleta(res, id) {
+  deleta(id) {
     const sql = `DELETE FROM Pets WHERE id=${id}`
 
-    executaQuery(res, sql)
+    return executaQuery(sql).then(() => id)
   }
 }
 
