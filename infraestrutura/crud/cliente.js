@@ -9,7 +9,6 @@ class Cliente {
     return executaQuery(sql).then(data => {
       const clientes = data[0]
       const pets = data[1]
-      console.log(clientes, pets)
 
       return clientes.map(cliente => {
         const petsCliente = pets.filter(pet => pet.donoId === cliente.id)
